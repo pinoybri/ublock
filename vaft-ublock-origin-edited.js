@@ -10,7 +10,11 @@
     function declareOptions(scope) {
         scope.AdSignifier = 'stitched';
         scope.ClientID = 'kimne78kx3ncx6brgo4mv6wki5h1ko';
-        scope.BackupPlayerTypes = ['embed', 'popout', 'autoplay'];
+        scope.BackupPlayerTypes = [
+            'embed',
+            'popout',
+            'autoplay',
+        ];
         scope.FallbackPlayerType = 'embed';
         scope.ForceAccessTokenPlayerType = 'popout';
         scope.SkipPlayerReloadOnHevc = false;
@@ -41,9 +45,16 @@
     let isActivelyStrippingAds = false;
     let localStorageHookFailed = false;
     const twitchWorkers = [];
-    const workerStringConflicts = ['twitch', 'isVariantA'];
+    const workerStringConflicts = [
+        'twitch',
+        'isVariantA'
+    ];
     const workerStringAllow = [];
-    const workerStringReinsert = ['isVariantA', 'besuper/', '${patch_url}'];
+    const workerStringReinsert = [
+        'isVariantA',
+        'besuper/',
+        '${patch_url}'
+    ];
     function getCleanWorker(worker) {
         let root = null;
         let parent = null;
@@ -55,7 +66,9 @@
                     Object.setPrototypeOf(parent, Object.getPrototypeOf(proto));
                 }
             } else {
-                if (root === null) { root = proto; }
+                if (root === null) {
+                    root = proto;
+                }
                 parent = proto;
             }
             proto = Object.getPrototypeOf(proto);
@@ -66,7 +79,8 @@
         const result = [];
         let proto = worker;
         while (proto) {
-            if (workerStringReinsert.some((x) => proto.toString().includes(x))) {
+            const workerString = proto.toString();
+            if (workerStringReinsert.some((x) => workerString.includes(x))) {
                 result.push(proto);
             }
             proto = Object.getPrototypeOf(proto);
@@ -92,7 +106,9 @@
         const newWorker = class Worker extends getCleanWorker(window.Worker) {
             constructor(twitchBlobUrl, options) {
                 let isTwitchWorker = false;
-                try { isTwitchWorker = new URL(twitchBlobUrl).origin.endsWith('.twitch.tv'); } catch {}
+                try {
+                    isTwitchWorker = new URL(twitchBlobUrl).origin.endsWith('.twitch.tv');
+                } catch {}
                 if (!isTwitchWorker) {
                     super(twitchBlobUrl, options);
                     return;
@@ -172,15 +188,24 @@
                     if (event.data.key == 'FetchRequest') {
                         const fetchRequest = event.data.value;
                         const responseData = await handleWorkerFetchRequest(fetchRequest);
-                        this.postMessage({ key: 'FetchResponse', value: responseData });
+                        this.postMessage({
+                            key: 'FetchResponse',
+                            value: responseData
+                        });
                     }
                 });
             }
         };
         let workerInstance = reinsertWorkers(newWorker, reinsert);
         Object.defineProperty(window, 'Worker', {
-            get: function() { return workerInstance; },
-            set: function(value) { if (isValidWorker(value)) { workerInstance = value; } }
+            get: function() {
+                return workerInstance;
+            },
+            set: function(value) {
+                if (isValidWorker(value)) {
+                    workerInstance = value;
+                }
+            }
         });
     }
     function getWasmWorkerJs(twitchBlobUrl) {
@@ -196,18 +221,34 @@
             if (typeof url === 'string') {
                 if (AdSegmentCache.has(url)) {
                     return new Promise(function(resolve, reject) {
-                        realFetch('data:video/mp4;base64,AAAAKGZ0eXBtcDQyAAAAAWlzb21tcDQyZGFzaGF2YzFpc282aGxzZgAABEltb292AAAAbG12aGQAAAAAAAAAAAAAAAAAAYagAAAAAAABAAABAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADAAABqHRyYWsAAABcdGtoZAAAAAMAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAQAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAURtZGlhAAAAIG1kaGQAAAAAAAAAAAAAAAAAALuAAAAAAFXEAAAAAAAtaGRscgAAAAAAAAAAc291bgAAAAAAAAAAAAAAAFNvdW5kSGFuZGxlcgAAAADvbWluZgAAABBzbWhkAAAAAAAAAAAAAAAkZGluZgAAABxkcmVmAAAAAAAAAAEAAAAMdXJsIAAAAAEAAACzc3RibAAAAGdzdHNkAAAAAAAAAAEAAABXbXA0YQAAAAAAAAABAAAAAAAAAAAAAgAQAAAAALuAAAAAAAAzZXNkcwAAAAADgICAIgABAASAgIAUQBUAAAAAAAAAAAAAAAWAgIACEZAGgICAAQIAAAAQc3R0cwAAAAAAAAAAAAAAEHN0c2MAAAAAAAAAAAAAABRzdHN6AAAAAAAAAAAAAAAAAAAAEHN0Y28AAAAAAAAAAAAAAeV0cmFrAAAAXHRraGQAAAADAAAAAAAAAAAAAAACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAABAAAAAAoAAAAFoAAAAAAGBbWRpYQAAACBtZGhkAAAAAAAAAAAAAAAAAA9CQAAAAABVxAAAAAAALWhkbHIAAAAAAAAAAHZpZGUAAAAAAAAAAAAAAABWaWRlb0hhbmRsZXIAAAABLG1pbmYAAAAUdm1oZAAAAAEAAAAAAAAAAAAAACRkaW5mAAAAHGRyZWYAAAAAAAAAAQAAAAx1cmwgAAAAAQAAAOxzdGJsAAAAoHN0c2QAAAAAAAAAAQAAAJBhdmMxAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAoABaABIAAAASAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGP//AAAAOmF2Y0MBTUAe/+EAI2dNQB6WUoFAX/LgLUBAQFAAAD6AAA6mDgAAHoQAA9CW7y4KAQAEaOuPIAAAABBzdHRzAAAAAAAAAAAAAAAQc3RzYwAAAAAAAAAAAAAAFHN0c3oAAAAAAAAAAAAAAAAAAAAQc3RjbwAAAAAAAAAAAAAASG12ZXgAAAAgdHJleAAAAAAAAAABAAAAAQAAAC4AAAAAAoAAAAAAACB0cmV4AAAAAAAAAAIAAAABAACCNQAAAAACQAAA', options)
-                        .then(resolve).catch(reject);
+                        const send = function() {
+                            return realFetch('data:video/mp4;base64,AAAAKGZ0eXBtcDQyAAAAAWlzb21tcDQyZGFzaGF2YzFpc282aGxzZgAABEltb292AAAAbG12aGQAAAAAAAAAAAAAAAAAAYagAAAAAAABAAABAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADAAABqHRyYWsAAABcdGtoZAAAAAMAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAQAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAURtZGlhAAAAIG1kaGQAAAAAAAAAAAAAAAAAALuAAAAAAFXEAAAAAAAtaGRscgAAAAAAAAAAc291bgAAAAAAAAAAAAAAAFNvdW5kSGFuZGxlcgAAAADvbWluZgAAABBzbWhkAAAAAAAAAAAAAAAkZGluZgAAABxkcmVmAAAAAAAAAAEAAAAMdXJsIAAAAAEAAACzc3RibAAAAGdzdHNkAAAAAAAAAAEAAABXbXA0YQAAAAAAAAABAAAAAAAAAAAAAgAQAAAAALuAAAAAAAAzZXNkcwAAAAADgICAIgABAASAgIAUQBUAAAAAAAAAAAAAAAWAgIACEZAGgICAAQIAAAAQc3R0cwAAAAAAAAAAAAAAEHN0c2MAAAAAAAAAAAAAABRzdHN6AAAAAAAAAAAAAAAAAAAAEHN0Y28AAAAAAAAAAAAAAeV0cmFrAAAAXHRraGQAAAADAAAAAAAAAAAAAAACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAABAAAAAAoAAAAFoAAAAAAGBbWRpYQAAACBtZGhkAAAAAAAAAAAAAAAAAA9CQAAAAABVxAAAAAAALWhkbHIAAAAAAAAAAHZpZGUAAAAAAAAAAAAAAABWaWRlb0hhbmRsZXIAAAABLG1pbmYAAAAUdm1oZAAAAAEAAAAAAAAAAAAAACRkaW5mAAAAHGRyZWYAAAAAAAAAAQAAAAx1cmwgAAAAAQAAAOxzdGJsAAAAoHN0c2QAAAAAAAAAAQAAAJBhdmMxAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAoABaABIAAAASAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGP//AAAAOmF2Y0MBTUAe/+EAI2dNQB6WUoFAX/LgLUBAQFAAAD6AAA6mDgAAHoQAA9CW7y4KAQAEaOuPIAAAABBzdHRzAAAAAAAAAAAAAAAQc3RzYwAAAAAAAAAAAAAAFHN0c3oAAAAAAAAAAAAAAAAAAAAQc3RjbwAAAAAAAAAAAAAASG12ZXgAAAAgdHJleAAAAAAAAAABAAAAAQAAAC4AAAAAAoAAAAAAACB0cmV4AAAAAAAAAAIAAAABAACCNQAAAAACQAAA', options).then(function(response) {
+                                resolve(response);
+                            })['catch'](function(err) {
+                                reject(err);
+                            });
+                        };
+                        send();
                     });
                 }
                 url = url.trimEnd();
                 if (url.endsWith('m3u8')) {
                     return new Promise(function(resolve, reject) {
-                        realFetch(url, options).then(async function(response) {
+                        const processAfter = async function(response) {
                             if (response.status === 200) {
                                 resolve(new Response(await processM3U8(url, await response.text(), realFetch)));
-                            } else { resolve(response); }
-                        }).catch(reject);
+                            } else {
+                                resolve(response);
+                            }
+                        };
+                        const send = function() {
+                            return realFetch(url, options).then(function(response) {
+                                processAfter(response);
+                            })['catch'](function(err) {
+                                reject(err);
+                            });
+                        };
+                        send();
                     });
                 } else if (url.includes('/channel/hls/') && !url.includes('picture-by-picture')) {
                     V2API = url.includes('/api/v2/');
@@ -218,7 +259,7 @@
                         url = tempUrl.toString();
                     }
                     return new Promise(function(resolve, reject) {
-                        realFetch(url, options).then(async function(response) {
+                        const processAfter = async function(response) {
                             if (response.status == 200) {
                                 const encodingsM3u8 = await response.text();
                                 const serverTime = getServerTimeFromM3u8(encodingsM3u8);
@@ -228,7 +269,21 @@
                                 }
                                 if (streamInfo == null || streamInfo.EncodingsM3U8 == null) {
                                     StreamInfos[channelName] = streamInfo = {
-                                        ChannelName: channelName, IsShowingAd: false, LastPlayerReload: 0, EncodingsM3U8: encodingsM3u8, ModifiedM3U8: null, IsUsingModifiedM3U8: false, UsherParams: (new URL(url)).search, RequestedAds: new Set(), Urls: [], ResolutionList: [], BackupEncodingsM3U8Cache: [], ActiveBackupPlayerType: null, IsMidroll: false, IsStrippingAdSegments: false, NumStrippedAdSegments: 0
+                                        ChannelName: channelName,
+                                        IsShowingAd: false,
+                                        LastPlayerReload: 0,
+                                        EncodingsM3U8: encodingsM3u8,
+                                        ModifiedM3U8: null,
+                                        IsUsingModifiedM3U8: false,
+                                        UsherParams: (new URL(url)).search,
+                                        RequestedAds: new Set(),
+                                        Urls: [],
+                                        ResolutionList: [],
+                                        BackupEncodingsM3U8Cache: [],
+                                        ActiveBackupPlayerType: null,
+                                        IsMidroll: false,
+                                        IsStrippingAdSegments: false,
+                                        NumStrippedAdSegments: 0
                                     };
                                     const lines = encodingsM3u8.replaceAll('\r', '').split('\n');
                                     for (let i = 0; i < lines.length - 1; i++) {
@@ -236,7 +291,12 @@
                                             const attributes = parseAttributes(lines[i]);
                                             const resolution = attributes['RESOLUTION'];
                                             if (resolution) {
-                                                const resolutionInfo = { Resolution: resolution, FrameRate: attributes['FRAME-RATE'], Codecs: attributes['CODECS'], Url: lines[i + 1] };
+                                                const resolutionInfo = {
+                                                    Resolution: resolution,
+                                                    FrameRate: attributes['FRAME-RATE'],
+                                                    Codecs: attributes['CODECS'],
+                                                    Url: lines[i + 1]
+                                                };
                                                 streamInfo.Urls[lines[i + 1]] = resolutionInfo;
                                                 streamInfo.ResolutionList.push(resolutionInfo);
                                             }
@@ -249,26 +309,40 @@
                                             for (let i = 0; i < lines.length - 1; i++) {
                                                 if (lines[i].startsWith('#EXT-X-STREAM-INF')) {
                                                     const resSettings = parseAttributes(lines[i].substring(lines[i].indexOf(':') + 1));
-                                                    if (resSettings['CODECS'].startsWith('hev') || resSettings['CODECS'].startsWith('hvc')) {
-                                                        const [targetWidth, targetHeight] = resSettings['RESOLUTION'].split('x').map(Number);
-                                                        const newRes = nonHevcResolutionList.sort((a, b) => {
-                                                            const [swA, shA] = a.Resolution.split('x').map(Number);
-                                                            const [swB, shB] = b.Resolution.split('x').map(Number);
-                                                            return Math.abs((swA * shA) - (targetWidth * targetHeight)) - Math.abs((swB * shB) - (targetWidth * targetHeight));
+                                                    const codecsKey = 'CODECS';
+                                                    if (resSettings[codecsKey].startsWith('hev') || resSettings[codecsKey].startsWith('hvc')) {
+                                                        const oldResolution = resSettings['RESOLUTION'];
+                                                        const [targetWidth, targetHeight] = oldResolution.split('x').map(Number);
+                                                        const newResolutionInfo = nonHevcResolutionList.sort((a, b) => {
+                                                            const [streamWidthA, streamHeightA] = a.Resolution.split('x').map(Number);
+                                                            const [streamWidthB, streamHeightB] = b.Resolution.split('x').map(Number);
+                                                            return Math.abs((streamWidthA * streamHeightA) - (targetWidth * targetHeight)) - Math.abs((streamWidthB * streamHeightB) - (targetWidth * targetHeight));
                                                         })[0];
-                                                        lines[i] = lines[i].replace(/CODECS="[^"]+"/, `CODECS="${newRes.Codecs}"`);
-                                                        lines[i + 1] = newRes.Url + ' '.repeat(i + 1);
+                                                        lines[i] = lines[i].replace(/CODECS="[^"]+"/, `CODECS="${newResolutionInfo.Codecs}"`);
+                                                        lines[i + 1] = newResolutionInfo.Url + ' '.repeat(i + 1);
                                                     }
                                                 }
                                             }
                                         }
-                                        if (nonHevcResolutionList.length > 0 || AlwaysReloadPlayerOnAd) { streamInfo.ModifiedM3U8 = lines.join('\n'); }
+                                        if (nonHevcResolutionList.length > 0 || AlwaysReloadPlayerOnAd) {
+                                            streamInfo.ModifiedM3U8 = lines.join('\n');
+                                        }
                                     }
                                 }
                                 streamInfo.LastPlayerReload = Date.now();
                                 resolve(new Response(replaceServerTimeInM3u8(streamInfo.IsUsingModifiedM3U8 ? streamInfo.ModifiedM3U8 : streamInfo.EncodingsM3U8, serverTime)));
-                            } else { resolve(response); }
-                        }).catch(reject);
+                            } else {
+                                resolve(response);
+                            }
+                        };
+                        const send = function() {
+                            return realFetch(url, options).then(function(response) {
+                                processAfter(response);
+                            })['catch'](function(err) {
+                                reject(err);
+                            });
+                        };
+                        send();
                     });
                 }
             }
@@ -276,53 +350,83 @@
         };
     }
     function getServerTimeFromM3u8(encodingsM3u8) {
-        const regex = V2API ? /#EXT-X-SESSION-DATA:DATA-ID="SERVER-TIME",VALUE="([^"]+)"/ : /SERVER-TIME="([0-9.]+)"/;
-        const matches = encodingsM3u8.match(regex);
-        return (matches && matches.length > 1) ? matches[1] : null;
+        if (V2API) {
+            const matches = encodingsM3u8.match(/#EXT-X-SESSION-DATA:DATA-ID="SERVER-TIME",VALUE="([^"]+)"/);
+            return matches.length > 1 ? matches[1] : null;
+        }
+        const matches = encodingsM3u8.match('SERVER-TIME="([0-9.]+)"');
+        return matches.length > 1 ? matches[1] : null;
     }
     function replaceServerTimeInM3u8(encodingsM3u8, newServerTime) {
-        if (!newServerTime) return encodingsM3u8;
-        if (V2API) { return encodingsM3u8.replace(/(#EXT-X-SESSION-DATA:DATA-ID="SERVER-TIME",VALUE=")[^"]+(")/, `$1${newServerTime}$2`); }
-        return encodingsM3u8.replace(new RegExp('(SERVER-TIME=")[0-9.]+"'), `SERVER-TIME="${newServerTime}"`);
+        if (V2API) {
+            return newServerTime ? encodingsM3u8.replace(/(#EXT-X-SESSION-DATA:DATA-ID="SERVER-TIME",VALUE=")[^"]+(")/, `$1${newServerTime}$2`) : encodingsM3u8;
+        }
+        return newServerTime ? encodingsM3u8.replace(new RegExp('(SERVER-TIME=")[0-9.]+"'), `SERVER-TIME="${newServerTime}"`) : encodingsM3u8;
     }
     function stripAdSegments(textStr, stripAllSegments, streamInfo) {
         let hasStrippedAdSegments = false;
         const lines = textStr.replaceAll('\r', '').split('\n');
         const newAdUrl = 'https://twitch.tv';
         for (let i = 0; i < lines.length; i++) {
-            lines[i] = lines[i].replaceAll(/(X-TV-TWITCH-AD-URL=")(?:[^"]*)(")/g, `$1${newAdUrl}$2`)
-                               .replaceAll(/(X-TV-TWITCH-AD-CLICK-TRACKING-URL=")(?:[^"]*)(")/g, `$1${newAdUrl}$2`);
-            if (i < lines.length - 1 && lines[i].startsWith('#EXTINF') && (!lines[i].includes(',live') || stripAllSegments || AllSegmentsAreAdSegments)) {
-                if (!AdSegmentCache.has(lines[i + 1])) { streamInfo.NumStrippedAdSegments++; }
-                AdSegmentCache.set(lines[i + 1], Date.now());
+            let line = lines[i];
+            line = line
+                .replaceAll(/(X-TV-TWITCH-AD-URL=")(?:[^"]*)(")/g, `$1${newAdUrl}$2`)
+                .replaceAll(/(X-TV-TWITCH-AD-CLICK-TRACKING-URL=")(?:[^"]*)(")/g, `$1${newAdUrl}$2`);
+            if (i < lines.length - 1 && line.startsWith('#EXTINF') && (!line.includes(',live') || stripAllSegments || AllSegmentsAreAdSegments)) {
+                const segmentUrl = lines[i + 1];
+                if (!AdSegmentCache.has(segmentUrl)) {
+                    streamInfo.NumStrippedAdSegments++;
+                }
+                AdSegmentCache.set(segmentUrl, Date.now());
                 hasStrippedAdSegments = true;
             }
-            if (lines[i].includes(AdSignifier)) { hasStrippedAdSegments = true; }
+            if (line.includes(AdSignifier)) {
+                hasStrippedAdSegments = true;
+            }
         }
         if (hasStrippedAdSegments) {
-            for (let i = 0; i < lines.length; i++) { if (lines[i].startsWith('#EXT-X-TWITCH-PREFETCH:')) { lines[i] = ''; } }
-        } else { streamInfo.NumStrippedAdSegments = 0; }
+            for (let i = 0; i < lines.length; i++) {
+                if (lines[i].startsWith('#EXT-X-TWITCH-PREFETCH:')) {
+                    lines[i] = '';
+                }
+            }
+        } else {
+            streamInfo.NumStrippedAdSegments = 0;
+        }
         streamInfo.IsStrippingAdSegments = hasStrippedAdSegments;
-        AdSegmentCache.forEach((val, key, map) => { if (val < Date.now() - 120000) { map.delete(key); } });
+        AdSegmentCache.forEach((key, value, map) => {
+            if (value < Date.now() - 120000) {
+                map.delete(key);
+            }
+        });
         return lines.join('\n');
     }
     function getStreamUrlForResolution(encodingsM3u8, resolutionInfo) {
         const encodingsLines = encodingsM3u8.replaceAll('\r', '').split('\n');
         const [targetWidth, targetHeight] = resolutionInfo.Resolution.split('x').map(Number);
-        let matchedResolutionUrl = null, matchedFrameRate = false, closestResolutionUrl = null, closestDiff = Infinity;
+        let matchedResolutionUrl = null;
+        let matchedFrameRate = false;
+        let closestResolutionUrl = null;
+        let closestResolutionDifference = Infinity;
         for (let i = 0; i < encodingsLines.length - 1; i++) {
             if (encodingsLines[i].startsWith('#EXT-X-STREAM-INF') && encodingsLines[i + 1].includes('.m3u8')) {
-                const attr = parseAttributes(encodingsLines[i]);
-                const res = attr['RESOLUTION'];
-                if (res) {
-                    if (res == resolutionInfo.Resolution && (!matchedResolutionUrl || (!matchedFrameRate && attr['FRAME-RATE'] == resolutionInfo.FrameRate))) {
+                const attributes = parseAttributes(encodingsLines[i]);
+                const resolution = attributes['RESOLUTION'];
+                const frameRate = attributes['FRAME-RATE'];
+                if (resolution) {
+                    if (resolution == resolutionInfo.Resolution && (!matchedResolutionUrl || (!matchedFrameRate && frameRate == resolutionInfo.FrameRate))) {
                         matchedResolutionUrl = encodingsLines[i + 1];
-                        matchedFrameRate = attr['FRAME-RATE'] == resolutionInfo.FrameRate;
-                        if (matchedFrameRate) return matchedResolutionUrl;
+                        matchedFrameRate = frameRate == resolutionInfo.FrameRate;
+                        if (matchedFrameRate) {
+                            return matchedResolutionUrl;
+                        }
                     }
-                    const [w, h] = res.split('x').map(Number);
-                    const diff = Math.abs((w * h) - (targetWidth * targetHeight));
-                    if (diff < closestDiff) { closestResolutionUrl = encodingsLines[i + 1]; closestDiff = diff; }
+                    const [width, height] = resolution.split('x').map(Number);
+                    const difference = Math.abs((width * height) - (targetWidth * targetHeight));
+                    if (difference < closestResolutionDifference) {
+                        closestResolutionUrl = encodingsLines[i + 1];
+                        closestResolutionDifference = difference;
+                    }
                 }
             }
         }
@@ -330,229 +434,519 @@
     }
     async function processM3U8(url, textStr, realFetch) {
         const streamInfo = StreamInfosByUrl[url];
-        if (!streamInfo) return textStr;
-        if (HasTriggeredPlayerReload) { HasTriggeredPlayerReload = false; streamInfo.LastPlayerReload = Date.now(); }
-        if (textStr.includes(AdSignifier) || SimulatedAdsDepth > 0) {
+        if (!streamInfo) {
+            return textStr;
+        }
+        if (HasTriggeredPlayerReload) {
+            HasTriggeredPlayerReload = false;
+            streamInfo.LastPlayerReload = Date.now();
+        }
+        const haveAdTags = textStr.includes(AdSignifier) || SimulatedAdsDepth > 0;
+        if (haveAdTags) {
             streamInfo.IsMidroll = textStr.includes('"MIDROLL"') || textStr.includes('"midroll"');
             if (!streamInfo.IsShowingAd) {
                 streamInfo.IsShowingAd = true;
-                postMessage({ key: 'UpdateAdBlockBanner', isMidroll: streamInfo.IsMidroll, hasAds: true, isStrippingAdSegments: false });
+                postMessage({
+                    key: 'UpdateAdBlockBanner',
+                    isMidroll: streamInfo.IsMidroll,
+                    hasAds: streamInfo.IsShowingAd,
+                    isStrippingAdSegments: false
+                });
             }
             if (!streamInfo.IsMidroll) {
                 const lines = textStr.replaceAll('\r', '').split('\n');
                 for (let i = 0; i < lines.length; i++) {
-                    if (lines[i].startsWith('#EXTINF') && lines.length > i + 1 && !lines[i].includes(',live') && !streamInfo.RequestedAds.has(lines[i + 1])) {
-                        streamInfo.RequestedAds.add(lines[i + 1]);
-                        fetch(lines[i + 1]).then((r)=>{r.blob()});
-                        break;
+                    const line = lines[i];
+                    if (line.startsWith('#EXTINF') && lines.length > i + 1) {
+                        if (!line.includes(',live') && !streamInfo.RequestedAds.has(lines[i + 1])) {
+                            streamInfo.RequestedAds.add(lines[i + 1]);
+                            fetch(lines[i + 1]).then((response)=>{response.blob()});
+                            break;
+                        }
                     }
                 }
             }
-            const curRes = streamInfo.Urls[url];
-            if (!curRes) return textStr;
-            const isHevc = curRes.Codecs.startsWith('hev') || curRes.Codecs.startsWith('hvc');
+            const currentResolution = streamInfo.Urls[url];
+            if (!currentResolution) {
+                return textStr;
+            }
+            const isHevc = currentResolution.Codecs.startsWith('hev') || currentResolution.Codecs.startsWith('hvc');
             if (((isHevc && !SkipPlayerReloadOnHevc) || AlwaysReloadPlayerOnAd) && streamInfo.ModifiedM3U8 && !streamInfo.IsUsingModifiedM3U8) {
                 streamInfo.IsUsingModifiedM3U8 = true;
                 streamInfo.LastPlayerReload = Date.now();
-                postMessage({ key: 'ReloadPlayer' });
+                postMessage({
+                    key: 'ReloadPlayer'
+                });
             }
-            let backupM3u8 = null, fallbackM3u8 = null, startIndex = (streamInfo.LastPlayerReload > Date.now() - PlayerReloadMinimalRequestsTime) ? PlayerReloadMinimalRequestsPlayerIndex : 0;
-            for (let pIdx = startIndex; !backupM3u8 && pIdx < BackupPlayerTypes.length; pIdx++) {
-                const pType = BackupPlayerTypes[pIdx];
-                const realPType = pType.replace('-CACHED', '');
+            let backupPlayerType = null;
+            let backupM3u8 = null;
+            let fallbackM3u8 = null;
+            let startIndex = 0;
+            let isDoingMinimalRequests = false;
+            if (streamInfo.LastPlayerReload > Date.now() - PlayerReloadMinimalRequestsTime) {
+                startIndex = PlayerReloadMinimalRequestsPlayerIndex;
+                isDoingMinimalRequests = true;
+            }
+            for (let playerTypeIndex = startIndex; !backupM3u8 && playerTypeIndex < BackupPlayerTypes.length; playerTypeIndex++) {
+                const playerType = BackupPlayerTypes[playerTypeIndex];
+                const realPlayerType = playerType.replace('-CACHED', '');
+                const isFullyCachedPlayerType = playerType != realPlayerType;
                 for (let i = 0; i < 2; i++) {
-                    let encM3u8 = streamInfo.BackupEncodingsM3U8Cache[pType];
-                    if (!encM3u8) {
+                    let isFreshM3u8 = false;
+                    let encodingsM3u8 = streamInfo.BackupEncodingsM3U8Cache[playerType];
+                    if (!encodingsM3u8) {
+                        isFreshM3u8 = true;
                         try {
-                            const accRes = await getAccessToken(streamInfo.ChannelName, realPType);
-                            if (accRes.status === 200) {
-                                const acc = await accRes.json();
-                                const uInfo = new URL('https://usher.ttvnw.net/api/' + (V2API ? 'v2/' : '') + 'channel/hls/' + streamInfo.ChannelName + '.m3u8' + streamInfo.UsherParams);
-                                uInfo.searchParams.set('sig', acc.data.streamPlaybackAccessToken.signature);
-                                uInfo.searchParams.set('token', acc.data.streamPlaybackAccessToken.value);
-                                const encRes = await realFetch(uInfo.href);
-                                if (encRes.status === 200) encM3u8 = streamInfo.BackupEncodingsM3U8Cache[pType] = await encRes.text();
+                            const accessTokenResponse = await getAccessToken(streamInfo.ChannelName, realPlayerType);
+                            if (accessTokenResponse.status === 200) {
+                                const accessToken = await accessTokenResponse.json();
+                                const urlInfo = new URL('https://usher.ttvnw.net/api/' + (V2API ? 'v2/' : '') + 'channel/hls/' + streamInfo.ChannelName + '.m3u8' + streamInfo.UsherParams);
+                                urlInfo.searchParams.set('sig', accessToken.data.streamPlaybackAccessToken.signature);
+                                urlInfo.searchParams.set('token', accessToken.data.streamPlaybackAccessToken.value);
+                                const encodingsM3u8Response = await realFetch(urlInfo.href);
+                                if (encodingsM3u8Response.status === 200) {
+                                    encodingsM3u8 = streamInfo.BackupEncodingsM3U8Cache[playerType] = await encodingsM3u8Response.text();
+                                }
                             }
                         } catch (err) {}
                     }
-                    if (encM3u8) {
+                    if (encodingsM3u8) {
                         try {
-                            const sM3u8Url = getStreamUrlForResolution(encM3u8, curRes);
-                            const sM3u8Res = await realFetch(sM3u8Url);
-                            if (sM3u8Res.status == 200) {
-                                const mText = await sM3u8Res.text();
-                                if (mText) {
-                                    if (pType == FallbackPlayerType) fallbackM3u8 = mText;
-                                    if ((!mText.includes(AdSignifier) && (SimulatedAdsDepth == 0 || pIdx >= SimulatedAdsDepth - 1)) || (!fallbackM3u8 && pIdx >= BackupPlayerTypes.length - 1) || (startIndex > 0)) {
-                                        backupM3u8 = mText; break;
+                            const streamM3u8Url = getStreamUrlForResolution(encodingsM3u8, currentResolution);
+                            const streamM3u8Response = await realFetch(streamM3u8Url);
+                            if (streamM3u8Response.status == 200) {
+                                const m3u8Text = await streamM3u8Response.text();
+                                if (m3u8Text) {
+                                    if (playerType == FallbackPlayerType) {
+                                        fallbackM3u8 = m3u8Text;
+                                    }
+                                    if ((!m3u8Text.includes(AdSignifier) && (SimulatedAdsDepth == 0 || playerTypeIndex >= SimulatedAdsDepth - 1)) || (!fallbackM3u8 && playerTypeIndex >= BackupPlayerTypes.length - 1)) {
+                                        backupPlayerType = playerType;
+                                        backupM3u8 = m3u8Text;
+                                        break;
+                                    }
+                                    if (isFullyCachedPlayerType) {
+                                        break;
+                                    }
+                                    if (isDoingMinimalRequests) {
+                                        backupPlayerType = playerType;
+                                        backupM3u8 = m3u8Text;
+                                        break;
                                     }
                                 }
                             }
                         } catch (err) {}
                     }
-                    streamInfo.BackupEncodingsM3U8Cache[pType] = null;
-                    break;
+                    streamInfo.BackupEncodingsM3U8Cache[playerType] = null;
+                    if (isFreshM3u8) {
+                        break;
+                    }
                 }
             }
-            if (!backupM3u8 && fallbackM3u8) backupM3u8 = fallbackM3u8;
-            if (backupM3u8) textStr = backupM3u8;
+            if (!backupM3u8 && fallbackM3u8) {
+                backupPlayerType = FallbackPlayerType;
+                backupM3u8 = fallbackM3u8;
+            }
+            if (backupM3u8) {
+                textStr = backupM3u8;
+                if (streamInfo.ActiveBackupPlayerType != backupPlayerType) {
+                    streamInfo.ActiveBackupPlayerType = backupPlayerType;
+                }
+            }
             const stripHevc = isHevc && streamInfo.ModifiedM3U8;
-            if (IsAdStrippingEnabled || stripHevc) textStr = stripAdSegments(textStr, stripHevc, streamInfo);
+            if (IsAdStrippingEnabled || stripHevc) {
+                textStr = stripAdSegments(textStr, stripHevc, streamInfo);
+            }
         } else if (streamInfo.IsShowingAd) {
-            streamInfo.IsShowingAd = false; streamInfo.IsStrippingAdSegments = false; streamInfo.NumStrippedAdSegments = 0; streamInfo.ActiveBackupPlayerType = null;
+            streamInfo.IsShowingAd = false;
+            streamInfo.IsStrippingAdSegments = false;
+            streamInfo.NumStrippedAdSegments = 0;
+            streamInfo.ActiveBackupPlayerType = null;
             if (streamInfo.IsUsingModifiedM3U8 || ReloadPlayerAfterAd) {
-                streamInfo.IsUsingModifiedM3U8 = false; streamInfo.LastPlayerReload = Date.now(); postMessage({ key: 'ReloadPlayer' });
-            } else { postMessage({ key: 'PauseResumePlayer' }); }
+                streamInfo.IsUsingModifiedM3U8 = false;
+                streamInfo.LastPlayerReload = Date.now();
+                postMessage({
+                    key: 'ReloadPlayer'
+                });
+            } else {
+                postMessage({
+                    key: 'PauseResumePlayer'
+                });
+            }
         }
-        postMessage({ key: 'UpdateAdBlockBanner', isMidroll: streamInfo.IsMidroll, hasAds: streamInfo.IsShowingAd, isStrippingAdSegments: streamInfo.IsStrippingAdSegments, numStrippedAdSegments: streamInfo.NumStrippedAdSegments });
+        postMessage({
+            key: 'UpdateAdBlockBanner',
+            isMidroll: streamInfo.IsMidroll,
+            hasAds: streamInfo.IsShowingAd,
+            isStrippingAdSegments: streamInfo.IsStrippingAdSegments,
+            numStrippedAdSegments: streamInfo.NumStrippedAdSegments
+        });
         return textStr;
     }
     function parseAttributes(str) {
-        return Object.fromEntries(str.split(/(?:^|,)((?:[^=]*)=(?:"[^"]*"|[^,]*))/).filter(Boolean).map(x => {
-            const idx = x.indexOf('=');
-            const key = x.substring(0, idx);
-            const val = x.substring(idx + 1);
-            const num = Number(val);
-            return [key, Number.isNaN(num) ? val.startsWith('"') ? JSON.parse(val) : val : num];
-        }));
+        return Object.fromEntries(
+            str.split(/(?:^|,)((?:[^=]*)=(?:"[^"]*"|[^,]*))/)
+            .filter(Boolean)
+            .map(x => {
+                const idx = x.indexOf('=');
+                const key = x.substring(0, idx);
+                const value = x.substring(idx + 1);
+                const num = Number(value);
+                return [key, Number.isNaN(num) ? value.startsWith('"') ? JSON.parse(value) : value : num];
+            }));
     }
     function getAccessToken(channelName, playerType) {
-        return gqlRequest({
+        const body = {
             operationName: 'PlaybackAccessToken',
-            variables: { isLive: true, login: channelName, isVod: false, vodID: "", playerType: playerType, platform: playerType == 'autoplay' ? 'android' : 'web' },
-            extensions: { persistedQuery: { version:1, sha256Hash:"ed230aa1e33e07eebb8928504583da78a5173989fadfb1ac94be06a04f3cdbe9" } }
-        }, playerType);
+            variables: {
+                isLive: true,
+                login: channelName,
+                isVod: false,
+                vodID: "",
+                playerType: playerType,
+                platform: playerType == 'autoplay' ? 'android' : 'web'
+            },
+            extensions: {
+                persistedQuery: {
+                    version:1,
+                    sha256Hash:"ed230aa1e33e07eebb8928504583da78a5173989fadfb1ac94be06a04f3cdbe9"
+                }
+            }
+        };
+        return gqlRequest(body, playerType);
     }
     function gqlRequest(body, playerType) {
         if (!GQLDeviceID) {
-            const dchars = 'abcdefghijklmnopqrstuvwxyz0123456789';
-            GQLDeviceID = '';
-            for (let i = 0; i < 32; i++) GQLDeviceID += dchars.charAt(Math.floor(Math.random() * dchars.length));
+            const dcharacters = 'abcdefghijklmnopqrstuvwxyz0123456789';
+            const dcharactersLength = dcharacters.length;
+            for (let i = 0; i < 32; i++) {
+                GQLDeviceID += dcharacters.charAt(Math.floor(Math.random() * dcharactersLength));
+            }
         }
-        let headers = { 'Client-ID': ClientID, 'X-Device-Id': GQLDeviceID, 'Authorization': AuthorizationHeader, ...(ClientIntegrityHeader && {'Client-Integrity': ClientIntegrityHeader}), ...(ClientVersion && {'Client-Version': ClientVersion}), ...(ClientSession && {'Client-Session-Id': ClientSession}) };
+        let headers = {
+            'Client-ID': ClientID,
+            'X-Device-Id': GQLDeviceID,
+            'Authorization': AuthorizationHeader,
+            ...(ClientIntegrityHeader && {'Client-Integrity': ClientIntegrityHeader}),
+            ...(ClientVersion && {'Client-Version': ClientVersion}),
+            ...(ClientSession && {'Client-Session-Id': ClientSession})
+        };
         return new Promise((resolve, reject) => {
-            const rid = Math.random().toString(36).substring(2, 15);
-            pendingFetchRequests.set(rid, { resolve, reject });
-            postMessage({ key: 'FetchRequest', value: { id: rid, url: 'https://gql.twitch.tv/gql', options: { method: 'POST', body: JSON.stringify(body), headers } } });
+            const requestId = Math.random().toString(36).substring(2, 15);
+            const fetchRequest = {
+                id: requestId,
+                url: 'https://gql.twitch.tv/gql',
+                options: {
+                    method: 'POST',
+                    body: JSON.stringify(body),
+                    headers
+                }
+            };
+            pendingFetchRequests.set(requestId, {
+                resolve,
+                reject
+            });
+            postMessage({
+                key: 'FetchRequest',
+                value: fetchRequest
+            });
         });
     }
     let playerForMonitoringBuffering = null;
-    const playerBufferState = { position: 0, bufferedPosition: 0, bufferDuration: 0, numSame: 0, lastFixTime: 0, isLive: true };
+    const playerBufferState = {
+        position: 0,
+        bufferedPosition: 0,
+        bufferDuration: 0,
+        numSame: 0,
+        lastFixTime: 0,
+        isLive: true
+    };
     function monitorPlayerBuffering() {
         if (playerForMonitoringBuffering) {
             try {
                 const player = playerForMonitoringBuffering.player;
                 const state = playerForMonitoringBuffering.state;
-                if (!player.core) { playerForMonitoringBuffering = null; }
-                else if (state.props?.content?.type === 'live' && !player.isPaused() && !player.getHTMLVideoElement()?.ended && playerBufferState.lastFixTime <= Date.now() - PlayerBufferingMinRepeatDelay && !isActivelyStrippingAds) {
-                    const pos = player.core?.state?.position;
-                    const bPos = player.core?.state?.bufferedPosition;
-                    const bDur = player.getBufferDuration();
-                    if (pos > 5 && (playerBufferState.position == pos || bDur < PlayerBufferingDangerZone) && playerBufferState.bufferedPosition == bPos && playerBufferState.bufferDuration >= bDur && (pos != 0 || bPos != 0 || bDur != 0)) {
+                if (!player.core) {
+                    playerForMonitoringBuffering = null;
+                } else if (state.props?.content?.type === 'live' && !player.isPaused() && !player.getHTMLVideoElement()?.ended && playerBufferState.lastFixTime <= Date.now() - PlayerBufferingMinRepeatDelay && !isActivelyStrippingAds) {
+                    const position = player.core?.state?.position;
+                    const bufferedPosition = player.core?.state?.bufferedPosition;
+                    const bufferDuration = player.getBufferDuration();
+                    if (position > 5 &&
+                        (playerBufferState.position == position || bufferDuration < PlayerBufferingDangerZone)  &&
+                        playerBufferState.bufferedPosition == bufferedPosition &&
+                        playerBufferState.bufferDuration >= bufferDuration &&
+                        (position != 0 || bufferedPosition != 0 || bufferDuration != 0)
+                       ) {
                         playerBufferState.numSame++;
                         if (playerBufferState.numSame == PlayerBufferingSameStateCount) {
-                            doTwitchPlayerTask(!PlayerBufferingDoPlayerReload, PlayerBufferingDoPlayerReload);
+                            doTwitchPlayerTask(!PlayerBufferingDoPlayerReload, PlayerBufferingDoPlayerReload, false);
+                            const isPausePlay = !PlayerBufferingDoPlayerReload;
+                            const isReload = PlayerBufferingDoPlayerReload;
+                            doTwitchPlayerTask(isPausePlay, isReload);
                             playerBufferState.lastFixTime = Date.now();
                         }
-                    } else { playerBufferState.numSame = 0; }
-                    playerBufferState.position = pos; playerBufferState.bufferedPosition = bPos; playerBufferState.bufferDuration = bDur;
+                    } else {
+                        playerBufferState.numSame = 0;
+                    }
+                    playerBufferState.position = position;
+                    playerBufferState.bufferedPosition = bufferedPosition;
+                    playerBufferState.bufferDuration = bufferDuration;
                 }
-            } catch (err) { playerForMonitoringBuffering = null; }
+            } catch (err) {
+                playerForMonitoringBuffering = null;
+            }
         }
         if (!playerForMonitoringBuffering) {
-            const pAndS = getPlayerAndState();
-            if (pAndS?.player && pAndS?.state) playerForMonitoringBuffering = { player: pAndS.player, state: pAndS.state };
+            const playerAndState = getPlayerAndState();
+            if (playerAndState && playerAndState.player && playerAndState.state) {
+                playerForMonitoringBuffering = {
+                    player: playerAndState.player,
+                    state: playerAndState.state
+                };
+            }
         }
-        playerBufferState.isLive = playerForMonitoringBuffering?.state?.props?.content?.type === 'live';
+        const isLive = playerForMonitoringBuffering?.state?.props?.content?.type === 'live';
+        if (playerBufferState.isLive && !isLive) {
+            updateAdblockBanner({
+                hasAds: false
+            });
+        }
+        playerBufferState.isLive = isLive;
         setTimeout(monitorPlayerBuffering, PlayerBufferingDelay);
     }
     function updateAdblockBanner(data) {
-        isActivelyStrippingAds = data.isStrippingAdSegments;
-        // Visual banner logic removed to keep UI clean.
+        const playerRootDiv = document.querySelector('.video-player');
+        if (playerRootDiv != null) {
+            let adBlockDiv = null;
+            adBlockDiv = playerRootDiv.querySelector('.adblock-overlay');
+            if (adBlockDiv == null) {
+                adBlockDiv = document.createElement('div');
+                adBlockDiv.className = 'adblock-overlay';
+                adBlockDiv.innerHTML = '<div class="player-adblock-notice" style="color: white; background-color: rgba(0, 0, 0, 0.8); position: absolute; top: 0px; left: 0px; padding: 5px;"><p></p></div>';
+                adBlockDiv.style.display = 'none';
+                adBlockDiv.P = adBlockDiv.querySelector('p');
+                playerRootDiv.appendChild(adBlockDiv);
+            }
+            if (adBlockDiv != null) {
+                isActivelyStrippingAds = data.isStrippingAdSegments;
+                adBlockDiv.P.textContent = '';
+                adBlockDiv.style.display = 'none';
+            }
+        }
     }
     function getPlayerAndState() {
         function findReactNode(root, constraint) {
-            if (root.stateNode && constraint(root.stateNode)) return root.stateNode;
+            if (root.stateNode && constraint(root.stateNode)) {
+                return root.stateNode;
+            }
             let node = root.child;
             while (node) {
-                const res = findReactNode(node, constraint);
-                if (res) return res;
+                const result = findReactNode(node, constraint);
+                if (result) {
+                    return result;
+                }
                 node = node.sibling;
             }
             return null;
         }
-        let reactRootNode = null;
-        const rootNode = document.querySelector('#root');
-        if (rootNode) {
-            if (rootNode._reactRootContainer?._internalRoot?.current) { reactRootNode = rootNode._reactRootContainer._internalRoot.current; }
-            else {
-                const cName = Object.keys(rootNode).find(x => x.startsWith('__reactContainer'));
-                if (cName) reactRootNode = rootNode[cName];
+        function findReactRootNode() {
+            let reactRootNode = null;
+            const rootNode = document.querySelector('#root');
+            if (rootNode && rootNode._reactRootContainer && rootNode._reactRootContainer._internalRoot && rootNode._reactRootContainer._internalRoot.current) {
+                reactRootNode = rootNode._reactRootContainer._internalRoot.current;
             }
+            if (reactRootNode == null && rootNode != null) {
+                const containerName = Object.keys(rootNode).find(x => x.startsWith('__reactContainer'));
+                if (containerName != null) {
+                    reactRootNode = rootNode[containerName];
+                }
+            }
+            return reactRootNode;
         }
-        if (!reactRootNode) return null;
-        let player = findReactNode(reactRootNode, n => n.setPlayerActive && n.props?.mediaPlayerInstance);
-        player = player?.props?.mediaPlayerInstance ? player.props.mediaPlayerInstance : null;
-        const pState = findReactNode(reactRootNode, n => n.setSrc && n.setInitialPlaybackSettings);
-        return { player: player, state: pState };
+        const reactRootNode = findReactRootNode();
+        if (!reactRootNode) {
+            return null;
+        }
+        let player = findReactNode(reactRootNode, node => node.setPlayerActive && node.props && node.props.mediaPlayerInstance);
+        player = player && player.props && player.props.mediaPlayerInstance ? player.props.mediaPlayerInstance : null;
+        const playerState = findReactNode(reactRootNode, node => node.setSrc && node.setInitialPlaybackSettings);
+        return  {
+            player: player,
+            state: playerState
+        };
     }
     function doTwitchPlayerTask(isPausePlay, isReload) {
-        const pAndS = getPlayerAndState();
-        if (!pAndS?.player || !pAndS?.state || pAndS.player.isPaused() || pAndS.player.core?.paused) return;
-        if (isPausePlay) { pAndS.player.pause(); pAndS.player.play(); return; }
+        const playerAndState = getPlayerAndState();
+        if (!playerAndState) {
+            return;
+        }
+        const player = playerAndState.player;
+        const playerState = playerAndState.state;
+        if (!player || !playerState) {
+            return;
+        }
+        if (player.isPaused() || player.core?.paused) {
+            return;
+        }
+        if (isPausePlay) {
+            player.pause();
+            player.play();
+            return;
+        }
         if (isReload) {
-            const lsKeys = ['video-quality', 'video-muted', 'volume'];
-            let cachedLS = {};
-            try { lsKeys.forEach(k => cachedLS[k] = localStorage.getItem(k)); } catch {}
-            pAndS.state.setSrc({ isNewMediaPlayerInstance: true, refreshAccessToken: true });
+            const lsKeyQuality = 'video-quality';
+            const lsKeyMuted = 'video-muted';
+            const lsKeyVolume = 'volume';
+            let currentQualityLS = null;
+            let currentMutedLS = null;
+            let currentVolumeLS = null;
+            try {
+                currentQualityLS = localStorage.getItem(lsKeyQuality);
+                currentMutedLS = localStorage.getItem(lsKeyMuted);
+                currentVolumeLS = localStorage.getItem(lsKeyVolume);
+                if (localStorageHookFailed && player?.core?.state) {
+                    localStorage.setItem(lsKeyMuted, JSON.stringify({default:player.core.state.muted}));
+                    localStorage.setItem(lsKeyVolume, player.core.state.volume);
+                }
+                if (localStorageHookFailed && player?.core?.state?.quality?.group) {
+                    localStorage.setItem(lsKeyQuality, JSON.stringify({default:player.core.state.quality.group}));
+                }
+            } catch {}
+            playerState.setSrc({ isNewMediaPlayerInstance: true, refreshAccessToken: true });
             postTwitchWorkerMessage('TriggeredPlayerReload');
-            pAndS.player.play();
-            if (localStorageHookFailed) {
-                setTimeout(() => { try { Object.keys(cachedLS).forEach(k => { if (cachedLS[k]) localStorage.setItem(k, cachedLS[k]); }); } catch {} }, 3000);
+            player.play();
+            if (localStorageHookFailed && (currentQualityLS || currentMutedLS || currentVolumeLS)) {
+                setTimeout(() => {
+                    try {
+                        if (currentQualityLS) {
+                            localStorage.setItem(lsKeyQuality, currentQualityLS);
+                        }
+                        if (currentMutedLS) {
+                            localStorage.setItem(lsKeyMuted, currentMutedLS);
+                        }
+                        if (currentVolumeLS) {
+                            localStorage.setItem(lsKeyVolume, currentVolumeLS);
+                        }
+                    } catch {}
+                }, 3000);
             }
+            return;
         }
     }
-    window.reloadTwitchPlayer = () => { doTwitchPlayerTask(false, true); };
-    function postTwitchWorkerMessage(key, value) { twitchWorkers.forEach(w => w.postMessage({key, value})); }
+    window.reloadTwitchPlayer = () => {
+        doTwitchPlayerTask(false, true);
+    };
+    function postTwitchWorkerMessage(key, value) {
+        twitchWorkers.forEach((worker) => {
+            worker.postMessage({key: key, value: value});
+        });
+    }
     async function handleWorkerFetchRequest(fetchRequest) {
         try {
-            const res = await window.realFetch(fetchRequest.url, fetchRequest.options);
-            return { id: fetchRequest.id, status: res.status, statusText: res.statusText, headers: Object.fromEntries(res.headers.entries()), body: await res.text() };
-        } catch (error) { return { id: fetchRequest.id, error: error.message }; }
+            const response = await window.realFetch(fetchRequest.url, fetchRequest.options);
+            const responseBody = await response.text();
+            const responseObject = {
+                id: fetchRequest.id,
+                status: response.status,
+                statusText: response.statusText,
+                headers: Object.fromEntries(response.headers.entries()),
+                body: responseBody
+            };
+            return responseObject;
+        } catch (error) {
+            return {
+                id: fetchRequest.id,
+                error: error.message
+            };
+        }
     }
     function hookFetch() {
         const realFetch = window.fetch;
         window.realFetch = realFetch;
-        window.fetch = function(url, init) {
-            if (typeof url === 'string' && url.includes('gql')) {
-                let dId = init.headers['X-Device-Id'] || init.headers['Device-ID'];
-                if (dId && GQLDeviceID != dId) postTwitchWorkerMessage('UpdateDeviceId', GQLDeviceID = dId);
-                if (init.headers['Client-Version'] && init.headers['Client-Version'] !== ClientVersion) postTwitchWorkerMessage('UpdateClientVersion', ClientVersion = init.headers['Client-Version']);
-                if (init.headers['Client-Session-Id'] && init.headers['Client-Session-Id'] !== ClientSession) postTwitchWorkerMessage('UpdateClientSession', ClientSession = init.headers['Client-Session-Id']);
-                if (init.headers['Client-Integrity'] && init.headers['Client-Integrity'] !== ClientIntegrityHeader) postTwitchWorkerMessage('UpdateClientIntegrityHeader', ClientIntegrityHeader = init.headers['Client-Integrity']);
-                if (init.headers['Authorization'] && init.headers['Authorization'] !== AuthorizationHeader) postTwitchWorkerMessage('UpdateAuthorizationHeader', AuthorizationHeader = init.headers['Authorization']);
-                if (ForceAccessTokenPlayerType && typeof init.body === 'string' && init.body.includes('PlaybackAccessToken')) {
-                    const newBody = JSON.parse(init.body);
-                    const updateBody = (b) => { if (b?.variables?.playerType && b.variables.playerType !== ForceAccessTokenPlayerType) b.variables.playerType = ForceAccessTokenPlayerType; };
-                    Array.isArray(newBody) ? newBody.forEach(updateBody) : updateBody(newBody);
-                    init.body = JSON.stringify(newBody);
+        window.fetch = function(url, init, ...args) {
+            if (typeof url === 'string') {
+                if (url.includes('gql')) {
+                    let deviceId = init.headers['X-Device-Id'];
+                    if (typeof deviceId !== 'string') {
+                        deviceId = init.headers['Device-ID'];
+                    }
+                    if (typeof deviceId === 'string' && GQLDeviceID != deviceId) {
+                        GQLDeviceID = deviceId;
+                        postTwitchWorkerMessage('UpdateDeviceId', GQLDeviceID);
+                    }
+                    if (typeof init.headers['Client-Version'] === 'string' && init.headers['Client-Version'] !== ClientVersion) {
+                        postTwitchWorkerMessage('UpdateClientVersion', ClientVersion = init.headers['Client-Version']);
+                    }
+                    if (typeof init.headers['Client-Session-Id'] === 'string' && init.headers['Client-Session-Id'] !== ClientSession) {
+                        postTwitchWorkerMessage('UpdateClientSession', ClientSession = init.headers['Client-Session-Id']);
+                    }
+                    if (typeof init.headers['Client-Integrity'] === 'string' && init.headers['Client-Integrity'] !== ClientIntegrityHeader) {
+                        postTwitchWorkerMessage('UpdateClientIntegrityHeader', ClientIntegrityHeader = init.headers['Client-Integrity']);
+                    }
+                    if (typeof init.headers['Authorization'] === 'string' && init.headers['Authorization'] !== AuthorizationHeader) {
+                        postTwitchWorkerMessage('UpdateAuthorizationHeader', AuthorizationHeader = init.headers['Authorization']);
+                    }
+                    if (ForceAccessTokenPlayerType && typeof init.body === 'string' && init.body.includes('PlaybackAccessToken')) {
+                        let replacedPlayerType = '';
+                        const newBody = JSON.parse(init.body);
+                        if (Array.isArray(newBody)) {
+                            for (let i = 0; i < newBody.length; i++) {
+                                if (newBody[i]?.variables?.playerType && newBody[i]?.variables?.playerType !== ForceAccessTokenPlayerType) {
+                                    replacedPlayerType = newBody[i].variables.playerType;
+                                    newBody[i].variables.playerType = ForceAccessTokenPlayerType;
+                                }
+                            }
+                        } else {
+                            if (newBody?.variables?.playerType && newBody?.variables?.playerType !== ForceAccessTokenPlayerType) {
+                                replacedPlayerType = newBody.variables.playerType;
+                                newBody.variables.playerType = ForceAccessTokenPlayerType;
+                            }
+                        }
+                        if (replacedPlayerType) {
+                            init.body = JSON.stringify(newBody);
+                        }
+                    }
+                    if (init && typeof init.body === 'string' && init.body.includes('PlaybackAccessToken') && init.body.includes('picture-by-picture')) {
+                        init.body = '';
+                    }
                 }
-                if (init && typeof init.body === 'string' && init.body.includes('PlaybackAccessToken') && init.body.includes('picture-by-picture')) init.body = '';
             }
             return realFetch.apply(this, arguments);
         };
     }
     function onContentLoaded() {
-        try { Object.defineProperty(document, 'visibilityState', { get() { return 'visible'; } }); } catch{}
-        let hidden = document.__lookupGetter__('hidden'), webkitHidden = document.__lookupGetter__('webkitHidden');
-        try { Object.defineProperty(document, 'hidden', { get() { return false; } }); } catch{}
-        const block = e => { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); };
+        try {
+            Object.defineProperty(document, 'visibilityState', {
+                get() {
+                    return 'visible';
+                }
+            });
+        }catch{}
+        let hidden = document.__lookupGetter__('hidden');
+        let webkitHidden = document.__lookupGetter__('webkitHidden');
+        try {
+            Object.defineProperty(document, 'hidden', {
+                get() {
+                    return false;
+                }
+            });
+        }catch{}
+        const block = e => {
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+        };
+        let wasVideoPlaying = true;
         const visibilityChange = e => {
             if (typeof chrome !== 'undefined') {
-                const vids = document.getElementsByTagName('video');
-                if (vids.length > 0) {
-                    if (hidden?.apply(document) === true || webkitHidden?.apply(document) === true) {} 
-                    else if (!vids[0].ended && vids[0].paused && vids[0].muted) vids[0].play();
+                const videos = document.getElementsByTagName('video');
+                if (videos.length > 0) {
+                    if (hidden.apply(document) === true || (webkitHidden && webkitHidden.apply(document) === true)) {
+                        wasVideoPlaying = !videos[0].paused && !videos[0].ended;
+                    } else if (wasVideoPlaying && !videos[0].ended && videos[0].paused && videos[0].muted) {
+                        videos[0].play();
+                    }
                 }
             }
             block(e);
@@ -562,26 +956,72 @@
         document.addEventListener('mozvisibilitychange', visibilityChange, true);
         document.addEventListener('hasFocus', block, true);
         try {
-            const key = /Firefox/.test(navigator.userAgent) ? 'mozHidden' : 'webkitHidden';
-            Object.defineProperty(document, key, { get() { return false; } });
-        } catch{}
+            if (/Firefox/.test(navigator.userAgent)) {
+                Object.defineProperty(document, 'mozHidden', {
+                    get() {
+                        return false;
+                    }
+                });
+            } else {
+                Object.defineProperty(document, 'webkitHidden', {
+                    get() {
+                        return false;
+                    }
+                });
+            }
+        }catch{}
         try {
-            const keys = ['video-quality', 'video-muted', 'volume', 'lowLatencyModeEnabled', 'persistenceEnabled'];
-            const cached = new Map();
-            keys.forEach(k => cached.set(k, localStorage.getItem(k)));
-            const realSet = localStorage.setItem;
-            localStorage.setItem = function(k, v) { if (cached.has(k)) cached.set(k, v); realSet.apply(this, arguments); };
-            const realGet = localStorage.getItem;
-            localStorage.getItem = function(k) { return cached.has(k) ? cached.get(k) : realGet.apply(this, arguments); };
-            if (!localStorage.getItem.toString().includes('cached')) localStorageHookFailed = true;
-        } catch (err) { localStorageHookFailed = true; }
+            const keysToCache = [
+                'video-quality',
+                'video-muted',
+                'volume',
+                'lowLatencyModeEnabled',
+                'persistenceEnabled',
+            ];
+            const cachedValues = new Map();
+            for (let i = 0; i < keysToCache.length; i++) {
+                cachedValues.set(keysToCache[i], localStorage.getItem(keysToCache[i]));
+            }
+            const realSetItem = localStorage.setItem;
+            localStorage.setItem = function(key, value) {
+                if (cachedValues.has(key)) {
+                    cachedValues.set(key, value);
+                }
+                realSetItem.apply(this, arguments);
+            };
+            const realGetItem = localStorage.getItem;
+            localStorage.getItem = function(key) {
+                if (cachedValues.has(key)) {
+                    return cachedValues.get(key);
+                }
+                return realGetItem.apply(this, arguments);
+            };
+            if (!localStorage.getItem.toString().includes(Object.keys({cachedValues})[0])) {
+                localStorageHookFailed = true;
+            }
+        } catch (err) {
+            localStorageHookFailed = true;
+        }
     }
     declareOptions(window);
     hookWindowWorker();
     hookFetch();
-    if (PlayerBufferingFix) monitorPlayerBuffering();
-    if (document.readyState === "complete" || document.readyState === "interactive") onContentLoaded();
-    else window.addEventListener("DOMContentLoaded", onContentLoaded);
-    window.simulateAds = (depth) => { if (depth !== undefined) postTwitchWorkerMessage('SimulateAds', depth); };
-    window.allSegmentsAreAdSegments = () => postTwitchWorkerMessage('AllSegmentsAreAdSegments');
+    if (PlayerBufferingFix) {
+        monitorPlayerBuffering();
+    }
+    if (document.readyState === "complete" || document.readyState === "loaded" || document.readyState === "interactive") {
+        onContentLoaded();
+    } else {
+        window.addEventListener("DOMContentLoaded", function() {
+            onContentLoaded();
+        });
+    }
+    window.simulateAds = (depth) => {
+        if (depth !== undefined && depth >= 0) {
+            postTwitchWorkerMessage('SimulateAds', depth);
+        }
+    };
+    window.allSegmentsAreAdSegments = () => {
+        postTwitchWorkerMessage('AllSegmentsAreAdSegments');
+    };
 })();
